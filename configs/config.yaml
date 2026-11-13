@@ -1,0 +1,37 @@
+# python -m src.train            -> one run with these values
+# python -m src.train model.hidden=256 train.lr=3e-3   -> override anything
+
+seed: 0
+device: auto            # auto | cpu | cuda
+
+data:
+  n_samples: 20000
+  n_features: 20
+  noise: 0.3            # label noise / overlap of the synthetic task
+  val_frac: 0.2
+
+model:
+  hidden: 128
+  layers: 3
+  dropout: 0.1
+
+train:
+  epochs: 30
+  batch_size: 256
+  lr: 1.0e-3
+  weight_decay: 1.0e-4
+
+# Read only by `ivan sweep src.train`; the training script ignores it.
+sweep:
+  name: mlp-sweep
+  hypothesis: "a wider, more regularised MLP beats the default on val_acc"
+  method: random          # random | grid | smac3
+  metric: {name: val_acc, goal: maximize}
+  run_cap: 12
+  seed: 0
+  parameters:
+    model.hidden: {values: [64, 128, 256]}
+    model.layers: {min: 2, max: 5}
+    model.dropout: {min: 0.0, max: 0.5}
+    train.lr: {min: 1.0e-4, max: 1.0e-2, distribution: log_uniform_values}
+    train.batch_size: {values: [128, 256, 512]}
